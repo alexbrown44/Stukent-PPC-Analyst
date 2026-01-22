@@ -15,7 +15,7 @@ const Header: React.FC<HeaderProps> = ({ onReset }) => {
           </svg>
         </div>
         <div>
-          <h1 className="text-xl font-bold text-slate-900 leading-tight">Search Performance Analyst</h1>
+          <h1 className="text-xl font-bold text-slate-900 leading-tight">Stukent Search Performance Analyst</h1>
           <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">AI-Powered Paid Search Audit</p>
         </div>
       </div>
