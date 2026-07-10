@@ -102,7 +102,6 @@ app.post("/api/gemini/analyze-keywords", async (req, res) => {
       Format as clean markdown.`,
       config: {
         systemInstruction: SYSTEM_PROMPT_ANALYST,
-        thinkingConfig: { thinkingBudget: 2000 }
       },
     });
 
@@ -119,7 +118,7 @@ app.post("/api/gemini/conduct-deep-dive", async (req, res) => {
   try {
     const ai = getAi();
     const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash", 
+      model: "gemini-3.5-flash",
       contents: `Perform Step 4 (Holistic Performance Deep Dive) and Step 5 (Optimization Recommendations).
       
       KEYWORD DATA ANALYSIS:
@@ -145,7 +144,6 @@ app.post("/api/gemini/conduct-deep-dive", async (req, res) => {
       Formatting: Use clear headings and bullet points.`,
       config: {
         systemInstruction: SYSTEM_PROMPT_ANALYST,
-        thinkingConfig: { thinkingBudget: 4000 }
       },
     });
 
@@ -158,7 +156,9 @@ app.post("/api/gemini/conduct-deep-dive", async (req, res) => {
 
 // Setup Vite Dev server or production static serving
 async function setupServer() {
-  if (process.env.NODE_ENV !== "production") {
+  const isDev = process.env.NODE_ENV === "development" || (!process.env.NODE_ENV && !__filename.includes("dist"));
+
+  if (isDev) {
     const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true },
@@ -179,5 +179,3 @@ async function setupServer() {
 }
 
 setupServer();
-
-      
