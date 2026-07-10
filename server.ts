@@ -158,27 +158,39 @@ app.post("/api/gemini/conduct-deep-dive", async (req, res) => {
 
 // Setup Vite Dev server or production static serving
 async function setupServer() {
-  // Robustly determine if we are in development mode.
-  // We are in dev if NODE_ENV is explicitly "development", or if it's not "production" AND we are not running the compiled bundle.
-  const isDev = process.env.NODE_ENV === "development" || (
-    process.env.NODE_ENV !== "production" &&
-    typeof __filename !== "undefined" &&
-    !__filename.includes("dist") &&
-    !__filename.includes("server.cjs")
-  );
+  let isDev = false;
+  if (process.env.NODE_ENV !== "production") {
+    try {
+      // Dynamic import check to see if Vite is available
+      await import("vite");
+      isDev = true;
+    } catch (err) {
+      isDev = false;
+    }
+  }
 
   console.log(`[INFO] Starting server. NODE_ENV=${process.env.NODE_ENV}, PORT=${PORT}, isDev=${isDev}`);
 
   if (isDev) {
-    const { createServer: createViteServer } = await import("vite");
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
-    app.use(vite.middlewares);
-  } else {
+    try {
+      const { createServer: createViteServer } = await import("vite");
+      const vite = await createViteServer({
+        server: { middlewareMode: true },
+        appType: "spa",
+      });
+      app.use(vite.middlewares);
+    } catch (err) {
+      console.error("[ERROR] Failed to start Vite dev server, falling back to static:", err);
+      isDev = false;
+    }
+  }
+
+  // If we are not in dev mode, serve static production files from dist
+  if (!isDev) {
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
+    
+    // Support Express v5 catch-all parameter syntax
     app.get("*all", (req, res) => {
       res.sendFile(path.join(distPath, "index.html"));
     });
