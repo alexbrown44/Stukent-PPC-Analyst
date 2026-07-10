@@ -190,7 +190,7 @@ async function setupServer() {
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
     
-    // Support Express v5 catch-all parameter syntax
+    // Support Express v5 catch-all parameter syntax (*all) to prevent startup crashes
     app.get("*all", (req, res) => {
       res.sendFile(path.join(distPath, "index.html"));
     });
