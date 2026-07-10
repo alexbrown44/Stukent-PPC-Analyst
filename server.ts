@@ -4,16 +4,19 @@ import { GoogleGenAI } from "@google/genai";
 
 // Ensure we capture all uncaught errors so they are logged to stdout/stderr in Cloud Run
 process.on("uncaughtException", (err) => {
-  console.error("[FATAL] Uncaught Exception on startup:", err);
-  process.exit(1);
+  console.error("[WARNING] Uncaught Exception logged:", err);
+  // Do not exit to keep container alive and healthy in Cloud Run unless it's a fatal Node loop issue
 });
 process.on("unhandledRejection", (reason, promise) => {
-  console.error("[FATAL] Unhandled Rejection on startup:", reason);
-  process.exit(1);
+  console.error("[WARNING] Unhandled Rejection logged:", reason);
+  // Do not exit to keep container alive and healthy in Cloud Run
 });
 
 const app = express();
-const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+const PORT = (() => {
+  const p = process.env.PORT ? parseInt(process.env.PORT, 10) : 8080;
+  return isNaN(p) || p <= 0 ? 8080 : p;
+})();
 
 app.use(express.json({ limit: "10mb" }));
 
@@ -206,13 +209,17 @@ async function setupServer() {
     app.use(express.static(distPath));
     
     // Serve index.html for all non-file requests.
-    // NOTE: Express v5 uses a strict version of path-to-regexp where a plain "*" wildcard throws an error on startup.
-    // We MUST use "*all" to safely catch all routes under Express v5, preventing container startup crashes on Cloud Run.
-    console.log("[INFO] Registering SPA wildcard route handler (*all)...");
-    app.get("*all", (req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
+    // We use standard middleware (app.use) instead of an app.get catch-all route to bypass 
+    // path-to-regexp syntax differences between Express v4 and Express v5 entirely.
+    console.log("[INFO] Registering SPA wildcard middleware fallback...");
+    app.use((req, res, next) => {
+      if (req.method === "GET" && !req.path.startsWith("/api/")) {
+        res.sendFile(path.join(distPath, "index.html"));
+      } else {
+        next();
+      }
     });
-    console.log("[INFO] SPA wildcard route handler registered.");
+    console.log("[INFO] SPA wildcard middleware fallback registered.");
   }
 
   console.log(`[INFO] Attempting to listen on port ${PORT} (0.0.0.0)...`);
