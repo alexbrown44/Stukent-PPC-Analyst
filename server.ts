@@ -2,8 +2,16 @@ import express from "express";
 import path from "path";
 import { GoogleGenAI } from "@google/genai";
 
+// Ensure we capture all uncaught errors so they are logged to stdout/stderr in Cloud Run
+process.on("uncaughtException", (err) => {
+  console.error("[FATAL] Uncaught Exception on startup:", err);
+});
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("[FATAL] Unhandled Rejection on startup:", reason);
+});
+
 const app = express();
-const DEFAULT_PORT = 3000;
+const DEFAULT_PORT = process.env.NODE_ENV === "production" ? 8080 : 3000;
 const parsedPort = process.env.PORT ? parseInt(process.env.PORT, 10) : NaN;
 const PORT = !isNaN(parsedPort) && parsedPort > 0 ? parsedPort : DEFAULT_PORT;
 
