@@ -22,7 +22,7 @@ WORKDIR /app
 
 # Set production environment variables
 ENV NODE_ENV=production
-ENV PORT=8080
+ENV PORT=3000
 
 # Copy package files
 COPY package*.json ./
@@ -34,7 +34,7 @@ RUN npm install --omit=dev
 COPY --from=builder /app/dist ./dist
 
 # Expose the server port
-EXPOSE 8080
+EXPOSE 3000
 
 # Start the application
 CMD ["node", "dist/server.cjs"]

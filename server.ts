@@ -13,9 +13,7 @@ process.on("unhandledRejection", (reason, promise) => {
 });
 
 const app = express();
-const DEFAULT_PORT = process.env.NODE_ENV === "production" ? 8080 : 3000;
-const parsedPort = process.env.PORT ? parseInt(process.env.PORT, 10) : NaN;
-const PORT = !isNaN(parsedPort) && parsedPort > 0 ? parsedPort : DEFAULT_PORT;
+const PORT = 3000;
 
 app.use(express.json({ limit: "10mb" }));
 
