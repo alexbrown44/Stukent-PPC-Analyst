@@ -5,9 +5,11 @@ import { GoogleGenAI } from "@google/genai";
 // Ensure we capture all uncaught errors so they are logged to stdout/stderr in Cloud Run
 process.on("uncaughtException", (err) => {
   console.error("[FATAL] Uncaught Exception on startup:", err);
+  process.exit(1);
 });
 process.on("unhandledRejection", (reason, promise) => {
   console.error("[FATAL] Unhandled Rejection on startup:", reason);
+  process.exit(1);
 });
 
 const app = express();
@@ -166,13 +168,16 @@ app.post("/api/gemini/conduct-deep-dive", async (req, res) => {
 
 // Setup Vite Dev server or production static serving
 async function setupServer() {
+  console.log("[INFO] Initializing setupServer...");
   let isDev = false;
   if (process.env.NODE_ENV !== "production") {
     try {
+      console.log("[INFO] Checking if 'vite' is available for dev mode...");
       // Dynamic import check to see if Vite is available
       await import("vite");
       isDev = true;
     } catch (err) {
+      console.log("[INFO] 'vite' is not available. Falling back to production static serving.");
       isDev = false;
     }
   }
@@ -181,12 +186,14 @@ async function setupServer() {
 
   if (isDev) {
     try {
+      console.log("[INFO] Configuring Vite dev server middleware...");
       const { createServer: createViteServer } = await import("vite");
       const vite = await createViteServer({
         server: { middlewareMode: true },
         appType: "spa",
       });
       app.use(vite.middlewares);
+      console.log("[INFO] Vite dev server middleware successfully integrated.");
     } catch (err) {
       console.error("[ERROR] Failed to start Vite dev server, falling back to static:", err);
       isDev = false;
@@ -195,19 +202,24 @@ async function setupServer() {
 
   // If we are not in dev mode, serve static production files from dist
   if (!isDev) {
+    console.log("[INFO] Configuring production static asset serving...");
     const distPath = path.join(process.cwd(), "dist");
+    console.log(`[INFO] Static assets path: ${distPath}`);
     app.use(express.static(distPath));
     
     // Serve index.html for all non-file requests.
     // NOTE: Express v5 uses a strict version of path-to-regexp where a plain "*" wildcard throws an error on startup.
     // We MUST use "*all" to safely catch all routes under Express v5, preventing container startup crashes on Cloud Run.
+    console.log("[INFO] Registering SPA wildcard route handler (*all)...");
     app.get("*all", (req, res) => {
       res.sendFile(path.join(distPath, "index.html"));
     });
+    console.log("[INFO] SPA wildcard route handler registered.");
   }
 
+  console.log(`[INFO] Attempting to listen on port ${PORT} (0.0.0.0)...`);
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`[SUCCESS] Server successfully started and running on http://localhost:${PORT}`);
   });
 }
 
