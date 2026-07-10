@@ -158,7 +158,14 @@ app.post("/api/gemini/conduct-deep-dive", async (req, res) => {
 
 // Setup Vite Dev server or production static serving
 async function setupServer() {
-  const isDev = process.env.NODE_ENV !== "production";
+  // Robustly determine if we are in development mode.
+  // We are in dev if NODE_ENV is explicitly "development", or if it's not "production" AND we are not running the compiled bundle.
+  const isDev = process.env.NODE_ENV === "development" || (
+    process.env.NODE_ENV !== "production" &&
+    typeof __filename !== "undefined" &&
+    !__filename.includes("dist") &&
+    !__filename.includes("server.cjs")
+  );
 
   console.log(`[INFO] Starting server. NODE_ENV=${process.env.NODE_ENV}, PORT=${PORT}, isDev=${isDev}`);
 
