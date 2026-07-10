@@ -4,7 +4,8 @@ import { GoogleGenAI } from "@google/genai";
 
 const app = express();
 const DEFAULT_PORT = process.env.NODE_ENV === "production" ? 8080 : 3000;
-const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : DEFAULT_PORT;
+const parsedPort = process.env.PORT ? parseInt(process.env.PORT, 10) : NaN;
+const PORT = !isNaN(parsedPort) && parsedPort > 0 ? parsedPort : DEFAULT_PORT;
 
 app.use(express.json({ limit: "10mb" }));
 
@@ -157,7 +158,9 @@ app.post("/api/gemini/conduct-deep-dive", async (req, res) => {
 
 // Setup Vite Dev server or production static serving
 async function setupServer() {
-  const isDev = process.env.NODE_ENV === "development" || (!process.env.NODE_ENV && !__filename.includes("dist"));
+  const isDev = process.env.NODE_ENV !== "production";
+
+  console.log(`[INFO] Starting server. NODE_ENV=${process.env.NODE_ENV}, PORT=${PORT}, isDev=${isDev}`);
 
   if (isDev) {
     const { createServer: createViteServer } = await import("vite");
