@@ -22,6 +22,7 @@ WORKDIR /app
 
 # Set production environment variables
 ENV NODE_ENV=production
+ENV PORT=3000
 
 # Copy package files
 COPY package*.json ./
@@ -32,5 +33,8 @@ RUN npm install --omit=dev
 # Copy built assets and server binary from builder stage
 COPY --from=builder /app/dist ./dist
 
-# Start the application (inherits Cloud Run dynamic PORT)
+# Expose the server port
+EXPOSE 3000
+
+# Start the application
 CMD ["npm", "start"]
