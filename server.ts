@@ -3,7 +3,7 @@ import path from "path";
 import { GoogleGenAI } from "@google/genai";
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
 app.use(express.json({ limit: "10mb" }));
 
@@ -119,7 +119,7 @@ app.post("/api/gemini/conduct-deep-dive", async (req, res) => {
   try {
     const ai = getAi();
     const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash", // Upgraded from prohibited/deprecated gemini-1.5-flash
+      model: "gemini-3.5-flash", 
       contents: `Perform Step 4 (Holistic Performance Deep Dive) and Step 5 (Optimization Recommendations).
       
       KEYWORD DATA ANALYSIS:
@@ -179,3 +179,5 @@ async function setupServer() {
 }
 
 setupServer();
+
+      
