@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: stukent-search-performance-analyst
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 8080
+      - key: GEMINI_API_KEY
+        sync: false
